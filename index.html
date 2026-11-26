@@ -80,7 +80,10 @@ button.sm{padding:4px 8px;font-size:12.5px}
 .sp{flex:1}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 /* bố cục ma trận: cây YCCĐ bên trái, bảng bên phải */
-.mxwrap{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);gap:16px;align-items:start}
+.mxwrap{display:grid;grid-template-columns:minmax(220px,264px) minmax(0,1fr);gap:12px;align-items:start}
+.mxwrap.hide{grid-template-columns:40px minmax(0,1fr)}
+.mxwrap.hide .side-h>*:not(#sideHide),.mxwrap.hide .side-b{display:none}
+.mxwrap.hide .side-h{padding:8px 4px;justify-content:center}
 @media (max-width:1000px){.mxwrap{grid-template-columns:minmax(0,1fr)}}
 .side{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:sticky;top:calc(env(safe-area-inset-top,0px) + 66px)}
 @media (max-width:1000px){.side{position:static}}
@@ -290,6 +293,30 @@ body.v-cham-bai #info{display:none}
 #tree .yc .code{color:var(--muted);font-size:11px}
 #tree .linknote{margin:2px 8px 6px 14px;padding:7px 10px;border-radius:9px;background:var(--sunk);font-size:12px;line-height:1.45;color:var(--muted)}
 #tree .linkbtn{padding:4px 10px 8px 14px}
+
+/* cột trái gọn hơn để bảng ma trận hiện đủ */
+.side-h{flex-wrap:wrap;gap:6px}
+.side-h select{max-width:100%;flex:1 1 140px}
+#tree{font-size:13px}
+#tree details.cd>summary{padding:8px 10px;font-size:13.5px}
+#tree details.nd{margin:2px 0 6px 8px}
+#tree details.nd>summary{padding:6px 8px;font-size:13px}
+#tree .yc{margin:2px 4px 2px 8px;padding:5px 8px;font-size:12.5px;line-height:1.45}
+#tree .chips{padding:2px 6px 4px 10px}
+#tree .chipb{font-size:12px;padding:3px 9px 3px 7px}
+#tree .sub{padding:6px 8px 3px 10px}
+#tree .linknote{margin:2px 6px 6px 10px}
+@media (min-width:1500px){.wrap{max-width:1680px}}
+
+.aispin{display:inline-block;width:14px;height:14px;border:2px solid var(--ink-weak);border-top-color:var(--ink);border-radius:50%;animation:aispin .8s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes aispin{to{transform:rotate(360deg)}}
+#ai_stat{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+#aiPanel.busy{position:relative;overflow:hidden}
+#aiPanel.busy::before{content:"";position:absolute;left:0;top:0;height:3px;width:40%;background:linear-gradient(90deg,transparent,var(--ink),transparent);animation:aibar 1.4s ease-in-out infinite}
+@keyframes aibar{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+#aiPanel.busy #ai_go{animation:aipulse 1.6s ease-in-out infinite}
+@keyframes aipulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--ink) 20%,transparent)}}
+@media (prefers-reduced-motion:reduce){.aispin,#aiPanel.busy::before,#aiPanel.busy #ai_go{animation-duration:3s}}
 </style>
 </head>
 <body>
@@ -324,7 +351,7 @@ body.v-cham-bai #info{display:none}
   <section class="view" id="v-ma-tran" hidden>
     <div class="mxwrap">
       <aside class="side" aria-label="Yêu cầu cần đạt">
-        <div class="side-h"><b>Bài học &amp; YCCĐ</b><select id="s_sach" aria-label="Bộ sách" style="font-size:12px;padding:3px 6px"><option value="kntt">Bài học theo PPCT (SGK KNTT)</option><option value="none">Không dùng SGK (tự thêm bài)</option></select><button class="sm ghost" id="treeFold">Thu gọn</button></div>
+        <div class="side-h"><b>Bài học &amp; YCCĐ</b><select id="s_sach" aria-label="Bộ sách" style="font-size:12px;padding:3px 6px"><option value="kntt">Bài học theo PPCT (SGK KNTT)</option><option value="none">Không dùng SGK (tự thêm bài)</option></select><button class="sm ghost" id="treeFold">Thu gọn</button><button class="sm ghost" id="sideHide" title="Ẩn/hiện cột trái để bảng bên phải rộng hơn" aria-label="Ẩn cột trái" style="padding:2px 7px">⇤</button></div>
         <div class="side-b" id="tree"></div>
       </aside>
       <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
@@ -439,18 +466,23 @@ body.v-cham-bai #info{display:none}
     </div></div>
     <div class="panel" id="aiPanel" style="margin-top:14px">
       <div class="row" style="align-items:baseline;margin-bottom:10px"><h3 style="margin:0;font-size:15px">Soạn đề mới bằng AI theo ma trận &amp; bản đặc tả</h3><span class="hint">Mỗi đề đúng số câu, mức độ và YCCĐ của bản đặc tả; các đề khác câu hỏi nhưng tương đương nhau. Dùng chung mã đề bắt đầu, cách đảo và thông tin ký duyệt ở trên.</span></div>
+      <div class="bar" style="margin-bottom:10px">
+        <label class="field" style="flex:1 1 320px"><span>Ma trận dùng để soạn</span><select id="ai_mat"></select></label>
+        <span class="hint" id="ai_sum" style="flex:2 1 360px;align-self:end;padding-bottom:8px"></span>
+      </div>
       <div class="bar">
         <label class="field"><span>Số đề khác nhau</span><input id="ai_n" inputmode="numeric" value="2" style="width:80px"></label>
         <label class="field"><span>Số mã trộn mỗi đề</span><input id="ai_per" inputmode="numeric" value="1" style="width:80px"></label>
         <label class="field"><span>Soạn bằng</span><select id="ai_src"><option value="claude">Claude (khi mở trang trên claude.ai)</option><option value="gemini">Gemini (khoá API của thầy cô)</option><option value="manual">Chép lời nhắc sang AI khác</option></select></label>
         <label class="field ai-gem"><span>Khoá API Gemini</span><input id="ai_key" type="password" autocomplete="off" placeholder="AIza…" style="width:200px"></label>
-        <label class="field ai-gem"><span>Mô hình</span><input id="ai_model" value="gemini-flash-latest" style="width:170px"></label>
+        <label class="field ai-gem"><span>Mô hình</span><input id="ai_model" value="gemini-flash-latest" list="ai_models" style="width:190px"><datalist id="ai_models"></datalist></label>
+        <button class="ai-gem" id="ai_test" title="Kiểm tra khoá API và lấy danh sách mô hình dùng được">Kiểm tra khoá</button>
         <label class="ck"><input type="checkbox" id="ai_save" checked> Lưu các câu vào ngân hàng</label>
         <span class="sp"></span>
         <button id="ai_copy">Sao chép lời nhắc</button>
         <button class="pri" id="ai_go">Soạn đề bằng AI</button>
       </div>
-      <p class="hint ai-gem" style="margin:8px 0 0">Khoá Gemini lấy miễn phí ở aistudio.google.com (mục “Get API key”), chỉ lưu trên máy này. Dùng được cả khi trang nhúng trên website trường.</p>
+      <p class="hint ai-gem" style="margin:8px 0 0">Khoá Gemini lấy miễn phí ở <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (bấm “Create API key”), chỉ lưu trên máy này. Dùng được cả khi trang nhúng trên website trường.</p>
       <p class="hint" id="ai_stat" style="margin:8px 0 0"></p>
       <details id="ai_box" style="margin-top:10px"><summary style="cursor:pointer;font-weight:600">Kết quả AI — xem, sửa, hoặc dán kết quả từ AI khác vào đây</summary>
         <textarea id="ai_out" spellcheck="false" style="width:100%;min-height:240px;margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px" placeholder="=== ĐỀ 1 ===&#10;[TN] [8A.1.2] [NB]&#10;Câu: …&#10;A. …&#10;Đáp án: B&#10;&#10;=== ĐỀ 2 ===&#10;…"></textarea>
@@ -2332,6 +2364,8 @@ function docMatrixXML(){autoYc();if(isLSDL())return docLS();if(isKHTN())return d
   x+=DX.pb()+head('BẢN ĐẶC TẢ ĐỀ KIỂM TRA')+DX.p('2. BẢN ĐẶC TẢ ĐỀ KIỂM TRA',{b:true,sz:24})+DX.tbl(rows2,w2,{header:4})+((sp=>sp?DX.p('Tỉ lệ điểm theo phân môn: '+sp.map(([k,v])=>`${k} ${fmt(v)} điểm (${fmt(pct(v,S.total))}%)`).join('; ')+'.',{sz:22}):'')(pmSplit(stats())))+DX.p('Ghi chú: VD = Vận dụng; '+(isTin()?'NLa–NLe là thành phần năng lực Tin học':'NLa–NLe là các thành phần năng lực đặc thù của môn (ghi theo hướng dẫn của tổ chuyên môn)')+'; (*) là YCCĐ bổ sung.',{i:true,sz:20});
   return x+docSign(s)}
 /* lưu / mở ma trận dạng tệp .json */
+(()=>{const w=$('.mxwrap'),b=$('#sideHide'),set=h=>{w.classList.toggle('hide',h);b.textContent=h?'⇥':'⇤';b.setAttribute('aria-label',h?'Hiện cột trái':'Ẩn cột trái');LS.set('kt_sidehide',h?'1':'')};
+  set(!!LS.get('kt_sidehide',''));b.onclick=()=>set(!w.classList.contains('hide'))})();
 $('#btnMxJson').onclick=async()=>{autoYc();const m=JSON.parse(JSON.stringify(M)),name=matName(M.settings);
   try{await saveFile(ascii('Ma tran '+name)+'.json',new Blob([JSON.stringify({app:'thuoc-do-ma-tran',version:1,name,savedAt:new Date().toISOString(),matrix:m},null,1)],{type:'application/json'}));toast('Đã tải tệp ma trận .json.')}catch(e){toast(e.message)}};
 $('#btnMxJsonOpen').onclick=()=>$('#fileMxJson').click();
@@ -2642,7 +2676,7 @@ const tlYs=it=>it.q&&Array.isArray(it.q.y)&&it.q.y.length?it.q.y:null;
 function sections(G,ex){const p=G.pts,cont=G.settings.contNum!==false,R=['I','II','III','IV'];let off=0,ri=0;const tk=[];
   const add=(t,h,d)=>{tk.push({t,off:cont?off:0,h:`PHẦN ${R[ri++]}. ${h}`,d});off+=ex[t].length};
   if(ex.tn.length)add('tn',`TRẮC NGHIỆM (${f1(ex.tn.length*p.tn)} điểm)`,`Khoanh tròn vào chữ cái đứng trước câu trả lời đúng nhất (Mỗi câu ${fmt(p.tn)} điểm)`);
-  if(ex.ds.length)add('ds',`TRẮC NGHIỆM ĐÚNG – SAI (${f1(dsY(ex)*p.ds)} điểm)`,`Trong mỗi ý a), b), c), d) ở mỗi câu, em hãy đánh dấu (X) vào ô Đúng hoặc Sai.`);
+  if(ex.ds.length)add('ds',`TRẮC NGHIỆM ĐÚNG/ SAI; Đánh Đ/S vào đáp án tương ứng (${f1(dsY(ex)*p.ds)} điểm)`,`Ghi Đ (đúng) hoặc S (sai) vào ngoặc vuông trước mỗi ý a), b), c), d) (Mỗi ý ${fmt(p.ds)} điểm).`);
   if(ex.tln.length)add('tln',`TRẮC NGHIỆM TRẢ LỜI NGẮN (${f1(ex.tln.length*p.tln)} điểm)`,`Ghi câu trả lời ngắn gọn vào chỗ trống sau mỗi câu.`);
   let tl=null;if(ex.tl.length){tl={t:'tl',off:cont?off:0,h:`PHẦN ${R[ri++]}. TỰ LUẬN (${f1(tlY(ex)*p.tl)} điểm)`}}
   return {tk,tl,p}}
@@ -2653,7 +2687,7 @@ function examHTML(G,ex){const s=G.settings,{tk,tl,p}=sections(G,ex);
   tk.forEach(sec=>{h+=`<h4>${sec.h}</h4><p><i>${sec.d}</i></p>`;ex[sec.t].forEach((it,i)=>{const lab=`<b>Câu ${sec.off+i+1}.</b> `;
     if(it.miss){h+=`<p>${lab}<span class="miss">${esc(missTxt(it))}</span></p>`;return}
     if(sec.t==='tn'){const long=it.pa.some(x=>x.length>38);h+=`<p>${lab}${br(it.q.cau)}</p><div class="opts ${long?'one':''}">${it.pa.map((x,j)=>`<div><b>${ABCD[j]}.</b> ${esc(x)}</div>`).join('')}</div>`}
-    if(sec.t==='ds')h+=`<p>${lab}${br(it.q.cau)}</p><table style="width:100%"><tr><th>Nội dung</th><th style="width:56px">Đúng</th><th style="width:56px">Sai</th></tr>${it.q.y.map((y,j)=>`<tr><td style="text-align:left">${'abcd'[j]}) ${esc(y.t)}</td><td></td><td></td></tr>`).join('')}</table>`;
+    if(sec.t==='ds')h+=`<p>${lab}${br(it.q.cau)}</p>${it.q.y.map((y,j)=>`<p style="margin:2px 0 2px 16px;padding-left:44px;text-indent:-44px">[&nbsp;&nbsp;&nbsp;&nbsp;] <b>${'abcd'[j]})</b> ${esc(y.t)}</p>`).join('')}`;
     if(sec.t==='tln')h+=`<p>${lab}${br(it.q.cau)} …………</p>`})});
   if(tl){h+=`<h4>${tl.h}</h4>`;ex.tl.forEach((it,i)=>{const ys=tlYs(it);h+=`<p><b>Câu ${tl.off+i+1}.</b> <i>(${f1((it.soY||4)*p.tl)} điểm)</i> ${it.miss?`<span class="miss">${esc(missTxt(it))}</span>`:br(it.q.cau)}</p>${ys?ys.map((y,j)=>`<p style="padding-left:16px">${'abcdefgh'[j]}) ${esc(y.t)}</p>`).join(''):''}`})}
   return h+'<p class="end">------ HẾT ------</p></div>'}
@@ -2753,12 +2787,13 @@ async function aiCall(prompt,onText,signal){const src=$('#ai_src').value;
     if(!s)throw {code:'no_claude'};const r=await s(prompt,{signal,modelTier:'default',onText:({text})=>onText(text)});return r.text}
   if(src==='gemini'){const key=$('#ai_key').value.trim(),model=$('#ai_model').value.trim()||'gemini-flash-latest';if(!key)throw {code:'no_key'};
     const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,{method:'POST',signal,
-      headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}]})});
+      headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:65536}})});
     if(!res.ok){let m='';try{const j=await res.json();m=j.error&&j.error.message||''}catch(e){}throw {code:'http',status:res.status,message:m}}
-    const rd=res.body.getReader(),dec=new TextDecoder();let buf='',out='';
+    const rd=res.body.getReader(),dec=new TextDecoder();let buf='',out='',fin='';
     for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;
       while((i=buf.indexOf('\n'))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!line.startsWith('data:'))continue;
-        try{const j=JSON.parse(line.slice(5)),ps=(((j.candidates||[])[0]||{}).content||{}).parts||[];out+=ps.filter(x=>!x.thought).map(x=>x.text||'').join('');onText(out)}catch(e){}}}
+        try{const j=JSON.parse(line.slice(5)),ps=(((j.candidates||[])[0]||{}).content||{}).parts||[];out+=ps.filter(x=>!x.thought).map(x=>x.text||'').join('');const fr=((j.candidates||[])[0]||{}).finishReason;if(fr&&fr!=='STOP'&&fr!=='FINISH_REASON_UNSPECIFIED')fin=fr;onText(out)}catch(e){}}}
+    if(fin&&fin!=='MAX_TOKENS'&&!out.trim())throw {message:'Gemini dừng soạn ('+fin+')'};
     return out}
   throw {code:'manual'}}
 const aiErr=e=>e&&e.name==='AbortError'?'Đã dừng.':e&&e.code==='no_claude'?'Claude chỉ soạn được khi mở trang trên claude.ai. Hãy chọn “Gemini” (cần khoá API) hoặc “Chép lời nhắc sang AI khác”.':
@@ -2777,27 +2812,61 @@ function aiPreview(){const t=$('#ai_out').value,ps=aiSplit(t);if(!t.trim()){$('#
   $('#ai_parse').innerHTML=ps.length?`Nhận ra <b>${ps.length} đề</b>: `+ps.map(p=>{const r=parseBulk(p.lines.join('\n'));return `Đề ${p.n}: ${r.ok.length}/${need} câu`}).join(' · '):'Chưa nhận ra đề nào. Mỗi đề bắt đầu bằng dòng “=== ĐỀ 1 ===”, mỗi câu bắt đầu bằng [TN], [DS], [TLN] hoặc [TL].'}
 $('#ai_out').addEventListener('input',()=>{clearTimeout(aiPreview.h);aiPreview.h=setTimeout(aiPreview,300)});
 $('#ai_copy').onclick=()=>{if(!aiReady())return;copyOrShow(aiPrompt(aiN(),1,[]),`Đã chép lời nhắc soạn ${aiN()} đề. Dán vào Claude / ChatGPT / Gemini, rồi dán kết quả vào ô “Kết quả AI” và bấm “Dựng đề từ kết quả”.`);$('#ai_box').open=true};
+const aiSpin=(st,msg)=>{st.innerHTML=`<span class="aispin" aria-hidden="true"></span><span>${msg}</span>`};
+const aiClean=t=>String(t||'').replace(/^```[a-z]*\s*$/gim,'').trim();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 $('#ai_go').onclick=async()=>{if(aiCtl2){aiCtl2.abort();return}if(!aiReady())return;
   if($('#ai_src').value==='manual'){$('#ai_copy').click();return}
-  const n=aiN(),st=$('#ai_stat'),box=$('#ai_out');let done='';aiCtl2=new AbortController();aiSrcUI();$('#ai_box').open=true;box.value='';$('#ai_parse').textContent='';
-  try{for(let i=1;i<=n;i++){st.textContent=`Đang soạn đề ${i}/${n}…`;
-      const avoid=parseBulk(done).ok.map(q=>q.cau.replace(/\s+/g,' ').slice(0,90));
-      let txt=await aiCall(aiPrompt(1,i,avoid),t=>{box.value=done+t;box.scrollTop=1e9},aiCtl2.signal);
-      txt=String(txt||'').trim();if(!aiSplit(txt).length&&!txt)throw {message:'AI không trả về nội dung'};
-      if(!/^[#=*\s–-]*ĐỀ\s*(?:SỐ\s*)?\d+/i.test(txt.split('\n')[0].replace(/\*\*/g,'').trim()))txt=`=== ĐỀ ${i} ===\n`+txt;
-      else txt=txt.replace(/^[^\n]*/,`=== ĐỀ ${i} ===`);
-      done+=(done?'\n\n':'')+txt;box.value=done}
-    aiPreview();st.textContent=`Đã soạn xong ${n} đề. Đang dựng đề…`;await aiApply()}
+  const n=aiN(),st=$('#ai_stat'),box=$('#ai_out'),fail=[];let done='',t0=Date.now();aiCtl2=new AbortController();aiSrcUI();$('#ai_box').open=true;box.value='';$('#ai_parse').textContent='';$('#aiPanel').classList.add('busy');
+  const tick=setInterval(()=>{const el=$('#ai_sec');if(el)el.textContent=Math.round((Date.now()-t0)/1000)+' giây'},1000);
+  try{for(let i=1;i<=n;i++){let ok=false,lastErr=null;
+      for(let tr=0;tr<3&&!ok;tr++){
+        aiSpin(st,`Đang soạn <b>đề ${i}/${n}</b>${tr?` (thử lại lần ${tr})`:''}… <span id="ai_chr">0</span> ký tự · <span id="ai_sec">${Math.round((Date.now()-t0)/1000)} giây</span>`);
+        try{const avoid=parseBulk(done).ok.map(q=>q.cau.replace(/\s+/g,' ').slice(0,90));
+          let txt=aiClean(await aiCall(aiPrompt(1,i,avoid),t=>{box.value=done+(done?'\n\n':'')+t;box.scrollTop=1e9;const c=$('#ai_chr');if(c)c.textContent=t.length.toLocaleString('vi-VN')},aiCtl2.signal));
+          if(!/\[(TN|DS|ĐS|TLN|TL)\]/i.test(txt))throw {message:'AI trả về nội dung không đúng định dạng'};
+          /* bỏ mọi dòng tiêu đề "ĐỀ …" AI tự ghi, gắn đúng tiêu đề của lượt này */
+          txt=txt.split('\n').filter(L=>!/^[#=*\s–-]*ĐỀ\s*(?:SỐ\s*)?\d+\s*[:=#*\s–-]*$/i.test(L.replace(/\*\*/g,'').trim())).join('\n').trim();
+          done+=(done?'\n\n':'')+`=== ĐỀ ${i} ===\n`+txt;box.value=done;ok=true}
+        catch(e){if(e&&e.name==='AbortError')throw e;lastErr=e;if(e&&(e.code==='no_key'||e.code==='no_claude'||e.code==='not_granted'||e.status===400||e.status===403))throw e;
+          box.value=done;aiSpin(st,`Đề ${i}: ${esc(aiErr(e))} — chờ rồi thử lại…`);await sleep(e&&e.status===429?20000:4000)}}
+      if(!ok)fail.push(`đề ${i} (${aiErr(lastErr)})`)}
+    aiPreview();
+    if(done){aiSpin(st,'Đang dựng đề…');await aiApply()}
+    st.innerHTML=fail.length?`<span class="status warn">Chưa soạn được ${fail.length} đề</span> ${esc(fail.join('; '))}. Bấm “Soạn đề bằng AI” để soạn lại.`:`<span class="status ok">Đã soạn xong ${n} đề</span> trong ${Math.round((Date.now()-t0)/1000)} giây.`}
   catch(e){st.textContent=aiErr(e);if(done)box.value=done;aiPreview()}
-  finally{aiCtl2=null;aiSrcUI()}};
-async function aiApply(){if(!aiReady())return;const t=$('#ai_out').value;if(!aiSplit(t).length){toast('Chưa nhận ra đề nào trong ô kết quả.');return}
+  finally{clearInterval(tick);aiCtl2=null;aiSrcUI();$('#aiPanel').classList.remove('busy')}};
+async function aiApply(){aiMatUI();if(!aiReady())return;const t=$('#ai_out').value;if(!aiSplit(t).length){toast('Chưa nhận ra đề nào trong ô kết quả.');return}
   const {G,qs,nDe}=aiBuild(t);GEN=G;genSel=0;$('#genTools').hidden=false;const w=G.warns;let saved=0;
   const sig=t.length+':'+t.slice(0,200)+t.slice(-200);
   if($('#ai_save').checked&&qs.length&&sig!==aiSavedSig){for(const q of qs)if(await Store.put('questions',q))saved++;aiSavedSig=sig}
   $('#genWarn').innerHTML=`<p><span class="status ${w.length?'warn':'ok'}">Đã dựng ${nDe} đề do AI soạn</span> <span class="hint">${G.exams.length} mã đề${saved?` · đã lưu ${saved} câu vào ngân hàng`:''}. Thầy cô đọc lại từng đề trước khi in.</span></p>`+
     (w.length?`<div class="warnlist"><b>Cần xem lại ${w.length} chỗ</b> — ô vàng trong đề là câu AI soạn thiếu hoặc sai cấu trúc; sửa trong ô “Kết quả AI” rồi bấm “Dựng đề từ kết quả”.<ul>${w.slice(0,12).map(x=>`<li>${esc(x)}</li>`).join('')}${w.length>12?`<li>… và ${w.length-12} chỗ khác</li>`:''}</ul></div>`:'');
-  $('#ai_stat').textContent='';renderGen();$('#genWarn').scrollIntoView({behavior:'smooth',block:'start'})}
+  renderGen();$('#genWarn').scrollIntoView({behavior:'smooth',block:'start'})}
 $('#ai_build').onclick=()=>aiApply();
+/* chọn ma trận để AI soạn đề + tóm tắt + kiểm tra khoá Gemini */
+function aiMatUI(){const sel=$('#ai_mat');if(!sel)return;const cur=M.id||'';
+  sel.innerHTML=`<option value="">Ma trận đang soạn: ${esc(M.rows.length?matName(M.settings):'(trống)')}</option>`+Store.mats.filter(m=>m.id!==M.id).map(m=>`<option value="${esc(m.id)}">Đã lưu: ${esc(m.name||matName(m.settings||{}))}</option>`).join('');
+  sel.value='';const S=M.rows.length?aiSlots():null,ds=S?S.ds.length:0;
+  $('#ai_sum').innerHTML=!S?'Chưa có ma trận. Hãy soạn ở tab “Ma trận & Bản đặc tả” hoặc chọn một ma trận đã lưu.':
+    `Mỗi đề: <b>${aiCount(S)} câu</b> — ${[S.tn.length&&S.tn.length+' nhiều lựa chọn',ds&&ds+' Đúng–Sai',S.tln.length&&S.tln.length+' trả lời ngắn',S.tl.length&&S.tl.length+' tự luận'].filter(Boolean).join(' · ')} · ${fmt(stats().total)} điểm · ${esc(M.settings.phut||'')} phút`}
+$('#ai_mat').onchange=e=>{const id=e.target.value;if(!id)return;const m=Store.mats.find(x=>x.id===id);if(!m)return;
+  if(M.rows.length&&!M.id&&!confirm('Ma trận đang soạn chưa lưu sẽ được thay bằng ma trận đã chọn. Tiếp tục?')){e.target.value='';return}
+  const x=fixM(JSON.parse(JSON.stringify(m)));if(!x){toast('Ma trận này lưu theo cấu trúc cũ, không mở được.');return}
+  M=x;M.id=id;migBai();saveDraft();fillSettings();firstTree=true;openCd.clear();openNd.clear();renderTree();renderMX();aiMatUI();toast('Đã chọn “'+(m.name||'ma trận')+'” để soạn đề.')};
+addEventListener('hashchange',()=>{if(location.hash==='#tao-de')setTimeout(aiMatUI,0)});setTimeout(aiMatUI,0);
+$('#ai_key').addEventListener('input',()=>LS.set('kt_gemkey',$('#ai_key').value.trim()));
+$('#ai_test').onclick=async()=>{const key=$('#ai_key').value.trim(),st=$('#ai_stat');if(!key){st.textContent='Hãy dán khoá API Gemini vào ô “Khoá API Gemini”.';$('#ai_key').focus();return}
+  st.textContent='Đang kiểm tra khoá…';
+  try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
+    if(!r.ok){let m='';try{m=(await r.json()).error.message}catch(e){}throw {code:'http',status:r.status,message:m}}
+    const j=await r.json(),ms=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace(/^models\//,''));
+    $('#ai_models').innerHTML=ms.map(m=>`<option value="${esc(m)}">`).join('');
+    const cur=$('#ai_model').value.trim(),fl=ms.filter(m=>/flash/.test(m)&&!/lite|image|tts|live|audio|exp/.test(m));
+    if(!ms.includes(cur)&&cur!=='gemini-flash-latest'&&fl.length){$('#ai_model').value=fl[0];LS.set('kt_gemmodel',fl[0])}
+    st.innerHTML=`<span class="status ok">Khoá dùng được</span> ${ms.length} mô hình. Bấm “Soạn đề bằng AI” để soạn theo ma trận đã chọn.`}
+  catch(e){st.textContent=aiErr(e)}};
+
 $('#btnMxAiMany').onclick=()=>{location.hash='#tao-de';setTimeout(()=>{const p=$('#aiPanel');if(p){p.scrollIntoView({behavior:'smooth',block:'start'});$('#ai_n').focus()}},60)};
 function examXML(G,ex,img){const s=G.settings,{tk,tl,p}=sections(G,ex);let x='';const H=t=>({t,b:true,sh:SH});
   x+=DX.tbl([[{runs:[[s.cq?s.cq.toUpperCase()+'\n':'',{}],[s.truong,{b:true}],[toName(s)?'\n'+toName(s):'',{b:true}],['\n\nĐỀ CHÍNH THỨC',{b:true}],['\n(Đề kiểm tra có …… trang)',{i:true}]],sz:24,va:'top'},{runs:[[`KIỂM TRA, ĐÁNH GIÁ ${KY_UP(s)}\nNĂM HỌC ${s.nam}\nMÔN: ${monUp(s)}`,{b:true}],[`\nThời gian làm bài: ${s.phut} phút (không kể thời gian phát đề)`,{i:true}],[`\nMã đề: ${ex.ma}`,{b:true}]],sz:24,va:'top'}]],[4000,5606],{border:false});
@@ -2807,7 +2876,7 @@ function examXML(G,ex,img){const s=G.settings,{tk,tl,p}=sections(G,ex);let x='';
     x+=DX.p([lab,[it.q.cau+(sec.t==='tln'?' …………':'')]],{keep:sec.t!=='tln'});
     if(sec.t==='tn'){const mx=Math.max(...it.pa.map(a=>a.length)),per=mx<=14?4:mx<=38?2:1,tabs=per===4?[2400,4800,7200]:per===2?[4800]:null;
       for(let k=0;k<4;k+=per){const runs=[];for(let j=k;j<k+per;j++){if(j>k)runs.push(['\t']);runs.push([ABCD[j]+'. ',{b:true}],[it.pa[j]])}x+=DX.p(runs,{ind:280,tabs})}}
-    if(sec.t==='ds')x+=DX.tbl([[H('Nội dung'),H('Đúng'),H('Sai')],...it.q.y.map((y,j)=>[{t:`${'abcd'[j]}) ${y.t}`,al:'left'},'',''])],[8006,800,800],{header:1})})});
+    if(sec.t==='ds')it.q.y.forEach((y,j)=>{x+=DX.p([['[      ] '],[`${'abcd'[j]}) `,{b:true}],[y.t]],{ind:280})})})});
   if(tl){const nvH=PROF()==='nv';let lastCd=null,kk=0;if(!nvH)x+=DX.p(tl.h,{b:true,before:60,keep:true});ex.tl.forEach((it,i)=>{if(nvH&&it.q&&it.q.chuDe!==lastCd){lastCd=it.q.chuDe;kk++;x+=DX.p(`${roman(kk)}. ${cdName(lastCd).toUpperCase()}`,{b:true,before:80,keep:true})}const ys=tlYs(it);x+=DX.p([[`Câu ${tl.off+i+1}. `,{b:true}],[`(${f1((it.soY||4)*p.tl)} điểm) `,{i:true}],it.miss?[missTxt(it),{i:true}]:[it.q.cau]],{keep:!!ys});
     if(ys)ys.forEach((y,j)=>{x+=DX.p(`${'abcdefgh'[j]}) ${y.t}`,{ind:400})})})}
   return x+DX.p('------------ HẾT ------------',{al:'center',b:true,before:120,after:0})+DX.p('Học sinh không được sử dụng tài liệu, giám thị không giải thích gì thêm.',{al:'center',i:true,sz:22})}
